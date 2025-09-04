@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -20,7 +21,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto dto) {
-        users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         ItemRequest r = ItemRequestMapper.fromDto(dto, userId);
         r.setCreated(LocalDateTime.now());
         ItemRequest saved = repo.save(r);
@@ -29,20 +30,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getOwn(Long userId) {
-        users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return repo.findAllByRequestorId(userId).stream().map(ItemRequestMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
     public ItemRequestDto getById(Long userId, Long requestId) {
-        users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        ItemRequest r = repo.findById(requestId).orElseThrow(() -> new IllegalArgumentException("Request not found"));
+        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        ItemRequest r = repo.findById(requestId).orElseThrow(() -> new NotFoundException("Запрос не найден"));
         return ItemRequestMapper.toDto(r);
     }
 
     @Override
     public List<ItemRequestDto> getAll(Long userId) {
-        users.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return repo.findAll().stream().map(ItemRequestMapper::toDto).collect(Collectors.toList());
     }
 }

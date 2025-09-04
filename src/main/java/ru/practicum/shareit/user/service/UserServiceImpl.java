@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -23,7 +24,7 @@ public class UserServiceImpl implements UserService {
         UserValidator.validator(dto);
 
         repo.findByEmail(dto.getEmail()).ifPresent(u -> {
-            throw new ValidationException("Пользователь с таким email уже существует");
+            throw new ConflictException("Пользователь с таким email уже существует");
         });
         User saved = repo.save(UserMapper.fromDto(dto));
         return UserMapper.toDto(saved);
@@ -31,14 +32,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(Long id, UserDto dto) {
-        User existing = repo.findById(id).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        if (dto.getName() != null) existing.setName(dto.getName());
+        User existing = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        repo.findByEmail(dto.getEmail()).ifPresent(u -> {
+            throw new ConflictException("Пользователь с таким email уже существует");
+        });
+
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+
         if (dto.getEmail() != null) {
+            UserValidator.validator(dto);
+
             repo.findByEmail(dto.getEmail()).ifPresent(u -> {
-                if (!u.getId().equals(id)) throw new ValidationException("Адрес электронной почты уже существует");
+                if (!u.getId().equals(id)) {
+                    throw new ValidationException("Адрес электронной почты уже существует");
+                }
             });
+
             existing.setEmail(dto.getEmail());
         }
+
         return UserMapper.toDto(repo.update(existing));
     }
 

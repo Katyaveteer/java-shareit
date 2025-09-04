@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> create(@RequestHeader(USER_HEADER) Long userId,
-                                          @RequestBody ItemDto dto) {
+                                          @Valid @RequestBody ItemDto dto) {
         ItemDto saved = service.create(dto, userId);
         return ResponseEntity.created(URI.create("/items/" + saved.getId())).body(saved);
     }
