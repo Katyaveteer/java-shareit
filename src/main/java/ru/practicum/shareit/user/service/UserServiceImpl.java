@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
@@ -35,28 +34,26 @@ public class UserServiceImpl implements UserService {
         User existing = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        repo.findByEmail(dto.getEmail()).ifPresent(u -> {
-            throw new ConflictException("Пользователь с таким email уже существует");
-        });
-
-        if (dto.getName() != null) {
-            existing.setName(dto.getName());
-        }
-
-        if (dto.getEmail() != null) {
+        if (dto.getEmail() != null && !dto.getEmail().equals(existing.getEmail())) {
             UserValidator.validator(dto);
 
             repo.findByEmail(dto.getEmail()).ifPresent(u -> {
                 if (!u.getId().equals(id)) {
-                    throw new ValidationException("Адрес электронной почты уже существует");
+                    throw new ConflictException("Пользователь с таким email уже существует");
                 }
             });
 
             existing.setEmail(dto.getEmail());
         }
 
-        return UserMapper.toDto(repo.update(existing));
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+
+        User updated = repo.save(existing); // save работает для обновления
+        return UserMapper.toDto(updated);
     }
+
 
     @Override
     public UserDto get(Long id) {
@@ -70,6 +67,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
-        repo.delete(id);
+        if (!repo.existsById(id)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+        repo.deleteById(id);
     }
+
 }

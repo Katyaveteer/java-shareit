@@ -6,24 +6,22 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.repository.InMemoryItemRequestRepository;
+import ru.practicum.shareit.request.repository.RequestRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
-    private final InMemoryItemRequestRepository repo;
+    private final RequestRepository repo;
     private final UserRepository users;
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto dto) {
         users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         ItemRequest r = ItemRequestMapper.fromDto(dto, userId);
-        r.setCreated(LocalDateTime.now());
         ItemRequest saved = repo.save(r);
         return ItemRequestMapper.toDto(saved);
     }
@@ -31,7 +29,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getOwn(Long userId) {
         users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        return repo.findAllByRequestorId(userId).stream().map(ItemRequestMapper::toDto).collect(Collectors.toList());
+        return repo.findAllOtherUsersRequests(userId).stream().map(ItemRequestMapper::toDto).collect(Collectors.toList());
     }
 
     @Override

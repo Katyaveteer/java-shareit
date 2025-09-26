@@ -4,6 +4,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
+
 public final class ItemRequestMapper {
     private ItemRequestMapper() {
     }
@@ -13,8 +14,7 @@ public final class ItemRequestMapper {
         return ItemRequestDto.builder()
                 .id(r.getId())
                 .description(r.getDescription())
-                .requestorId(r.getRequestor() != null ? r.getRequestor().getId() : null)
-                .created(r.getCreated())
+                .requestorId(r.getRequestorId() != null ? r.getRequestorId() : null)
                 .build();
     }
 
@@ -24,8 +24,7 @@ public final class ItemRequestMapper {
         return ItemRequest.builder()
                 .id(d.getId())
                 .description(d.getDescription())
-                .requestor(requestor)
-                .created(d.getCreated())
+                .requestorId(requestor.getId())
                 .build();
     }
 }

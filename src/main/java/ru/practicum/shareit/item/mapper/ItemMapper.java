@@ -1,36 +1,50 @@
 package ru.practicum.shareit.item.mapper;
 
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-public final class ItemMapper {
-    private ItemMapper() {
-    }
+import java.util.List;
 
-    public static ItemDto toDto(Item i) {
-        if (i == null) return null;
-        return ItemDto.builder()
-                .id(i.getId())
-                .name(i.getName())
-                .description(i.getDescription())
-                .available(i.getAvailable())
-                .requestId(i.getRequest() != null ? i.getRequest().getId() : null)
+public class ItemMapper {
+
+    public static Item toEntity(ItemDto dto, User owner, ItemRequest request) {
+        return Item.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .available(dto.getAvailable())
+                .owner(owner)
+                .request(request)
                 .build();
     }
 
-    public static Item fromDto(ItemDto d, Long ownerId) {
-        if (d == null) return null;
-        User owner = User.builder().id(ownerId).build(); // owner only id for now
-        ItemRequest req = d.getRequestId() != null ? ItemRequest.builder().id(d.getRequestId()).build() : null;
-        return Item.builder()
-                .id(d.getId())
-                .name(d.getName())
-                .description(d.getDescription())
-                .available(d.getAvailable())
-                .owner(owner)
-                .request(req)
+    public static ItemDto toDto(Item item) {
+        return ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
+                .build();
+    }
+
+    public static ItemWithBookingsDto toDtoWithBookings(Item item,
+                                                        BookingShortDto lastBooking,
+                                                        BookingShortDto nextBooking,
+                                                        List<CommentDto> comments) {
+        return ItemWithBookingsDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .lastBooking(lastBooking)
+                .nextBooking(nextBooking)
+                .comments(comments)
                 .build();
     }
 }
