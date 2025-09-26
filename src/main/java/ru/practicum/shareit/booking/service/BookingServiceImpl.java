@@ -9,6 +9,10 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -21,22 +25,33 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
+
     @Override
     public BookingDto create(Long userId, BookingCreateDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item item = itemRepository.findById(dto.getItemId())
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         if (!item.getAvailable()) {
-            throw new RuntimeException("Item is not available for booking");
+            throw new BadRequestException("Товар недоступен для бронирования");
         }
         if (item.getOwner().getId().equals(userId)) {
-            throw new RuntimeException("Owner cannot book their own item");
+            throw new ForbiddenException("Владелец не может забронировать свой собственный товар");
+        }
+        if (dto.getEnd().isBefore(dto.getStart()) || dto.getEnd().isEqual(dto.getStart())) {
+            throw new BadRequestException("Некорректные даты бронирования");
+        }
+        if (dto.getStart() == null || dto.getEnd() == null) {
+            throw new BadRequestException("Дата начала и окончания обязательны");
+        }
+        if (dto.getStart().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Дата начала не может быть в прошлом");
         }
 
         Booking booking = BookingMapper.toEntity(dto, item, user);
@@ -46,13 +61,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto approve(Long ownerId, Long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Бронирование не найдено"));
+                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new RuntimeException("Только владелец может подтверждать бронирование");
+            throw new ForbiddenException("Только владелец может подтверждать бронирование");
         }
         if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new RuntimeException("Бронирование уже обработано");
+            throw new ConflictException("Бронирование уже обработано");
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
@@ -62,16 +77,22 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getById(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Бронирование не найдено"));
+                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         if (!booking.getBooker().getId().equals(userId)
                 && !booking.getItem().getOwner().getId().equals(userId)) {
-            throw new RuntimeException("Доступ запрещен");
+            throw new ForbiddenException("Доступ запрещен");
         }
         return BookingMapper.toDto(booking);
     }
 
     @Override
     public List<BookingDto> getUserBookings(Long userId, String state) {
+
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+
+
         LocalDateTime now = LocalDateTime.now();
         Sort sort = Sort.by("start").descending();
         List<Booking> bookings;
@@ -93,6 +114,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, String state) {
+
+        if (!userRepository.existsById(ownerId)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         Sort sort = Sort.by("start").descending();
         List<Booking> bookings = bookingRepository.findByOwnerId(ownerId, sort);

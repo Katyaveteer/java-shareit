@@ -33,7 +33,7 @@ public class ItemController {
     public ResponseEntity<ItemDto> update(@RequestHeader(USER_HEADER) Long userId,
                                           @PathVariable Long itemId,
                                           @RequestBody ItemDto dto) {
-        return ResponseEntity.ok(service.update(itemId, userId, dto));
+        return ResponseEntity.ok(service.update(userId, itemId, dto));
     }
 
     @GetMapping("/{itemId}")

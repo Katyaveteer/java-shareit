@@ -33,4 +33,19 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Произошла непредвиденная ошибка");
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public class ForbiddenException extends RuntimeException {
+        public ForbiddenException(String message) {
+            super(message);
+        }
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public class BadRequestException extends RuntimeException {
+        public BadRequestException(String message) {
+            super(message);
+        }
+    }
+
+
 }

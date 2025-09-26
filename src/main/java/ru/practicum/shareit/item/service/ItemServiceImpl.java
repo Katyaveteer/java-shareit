@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -38,11 +41,11 @@ public class ItemServiceImpl implements ItemService {
         ItemValidator.validator(dto);
 
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("Поьзователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         ItemRequest request = dto.getRequestId() != null
                 ? requestRepository.findById(dto.getRequestId())
-                .orElseThrow(() -> new RuntimeException("Запрос не найден"))
+                .orElseThrow(() -> new NotFoundException("Запрос не найден"))
                 : null;
 
         Item item = ItemMapper.toEntity(dto, owner, request);
@@ -77,7 +80,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemWithBookingsDto getById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         BookingShortDto lastBooking = null;
         BookingShortDto nextBooking = null;
@@ -104,9 +107,27 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemWithBookingsDto> getUserItems(Long ownerId) {
-        return itemRepository.findByOwnerId(ownerId)
-                .stream()
-                .map(item -> getById(ownerId, item.getId()))
+        List<Item> items = itemRepository.findByOwnerId(ownerId);
+
+        return items.stream()
+                .map(item -> {
+                    BookingShortDto lastBooking = bookingRepository
+                            .findFirstByItem_IdAndStartBeforeOrderByEndDesc(item.getId(), LocalDateTime.now())
+                            .map(BookingMapper::toShortDto)
+                            .orElse(null);
+
+                    BookingShortDto nextBooking = bookingRepository
+                            .findFirstByItem_IdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())
+                            .map(BookingMapper::toShortDto)
+                            .orElse(null);
+
+                    List<CommentDto> comments = commentRepository.findByItemId(item.getId())
+                            .stream()
+                            .map(CommentMapper::toDto)
+                            .toList();
+
+                    return ItemMapper.toDtoWithBookings(item, lastBooking, nextBooking, comments);
+                })
                 .toList();
     }
 
@@ -122,16 +143,16 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto addComment(Long userId, Long itemId, CommentDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
-        // проверка, что юзер бронировал вещь
-        boolean hasBooking = bookingRepository.existsByBooker_IdAndItem_IdAndEndBefore(
-                userId, itemId, LocalDateTime.now());
+        // проверяем, было ли у пользователя подтверждённое бронирование, завершившееся в прошлом
+        boolean hasBooking = bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(userId, itemId, BookingStatus.APPROVED, LocalDateTime.now()
+        );
 
         if (!hasBooking) {
-            throw new RuntimeException("Пользователь не забронировал этот товар");
+            throw new BadRequestException("Комментарий можно оставить только после завершённого бронирования");
         }
 
         Comment comment = Comment.builder()
@@ -143,4 +164,5 @@ public class ItemServiceImpl implements ItemService {
 
         return CommentMapper.toDto(commentRepository.save(comment));
     }
+
 }
