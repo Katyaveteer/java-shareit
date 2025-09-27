@@ -22,8 +22,8 @@ public class ItemRequest {
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "requestor_id", nullable = false)
-    private Long requestorId;
+    @Column(name = "requester_id", nullable = false)
+    private Long requesterId;
 
 }
 

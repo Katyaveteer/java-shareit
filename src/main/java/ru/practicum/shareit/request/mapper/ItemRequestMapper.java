@@ -14,17 +14,17 @@ public final class ItemRequestMapper {
         return ItemRequestDto.builder()
                 .id(r.getId())
                 .description(r.getDescription())
-                .requestorId(r.getRequestorId() != null ? r.getRequestorId() : null)
+                .requestorId(r.getRequesterId() != null ? r.getRequesterId() : null)
                 .build();
     }
 
-    public static ItemRequest fromDto(ItemRequestDto d, Long requestorId) {
+    public static ItemRequest fromDto(ItemRequestDto d, Long requesterId) {
         if (d == null) return null;
-        User requestor = User.builder().id(requestorId).build();
+        User requester = User.builder().id(requesterId).build();
         return ItemRequest.builder()
                 .id(d.getId())
                 .description(d.getDescription())
-                .requestorId(requestor.getId())
+                .requesterId(requester.getId())
                 .build();
     }
 }

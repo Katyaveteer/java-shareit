@@ -12,9 +12,9 @@ import java.util.List;
 @Repository
 public interface RequestRepository extends JpaRepository<ItemRequest, Long> {
 
-    List<ItemRequest> findByRequestorId(Long requestorId, Sort sort);
+    List<ItemRequest> findByRequesterId(Long requesterId, Sort sort);
 
-    @Query("select r from ItemRequest r where r.requestorId <> ?1")
+    @Query("select r from ItemRequest r where r.requesterId <> ?1")
     List<ItemRequest> findAllOtherUsersRequests(Long userId);
 }
 
