@@ -33,6 +33,22 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto create(Long userId, BookingCreateDto dto) {
+        if (dto == null) {
+            throw new BadRequestException("Данные бронирования обязательны");
+        }
+
+        if (dto.getStart() == null || dto.getEnd() == null) {
+            throw new BadRequestException("Дата начала и окончания обязательны");
+        }
+
+        if (!dto.getEnd().isAfter(dto.getStart())) {
+            throw new BadRequestException("Дата окончания должна быть позже даты начала");
+        }
+
+        if (!dto.getStart().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Дата начала должна быть в будущем");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Item item = itemRepository.findById(dto.getItemId())
@@ -43,15 +59,6 @@ public class BookingServiceImpl implements BookingService {
         }
         if (item.getOwner().getId().equals(userId)) {
             throw new ForbiddenException("Владелец не может забронировать свой собственный товар");
-        }
-        if (dto.getEnd().isBefore(dto.getStart()) || dto.getEnd().isEqual(dto.getStart())) {
-            throw new BadRequestException("Некорректные даты бронирования");
-        }
-        if (dto.getStart() == null || dto.getEnd() == null) {
-            throw new BadRequestException("Дата начала и окончания обязательны");
-        }
-        if (dto.getStart().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Дата начала не может быть в прошлом");
         }
 
         Booking booking = BookingMapper.toEntity(dto, item, user);

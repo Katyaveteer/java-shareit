@@ -16,5 +16,6 @@ public interface RequestRepository extends JpaRepository<ItemRequest, Long> {
 
     @Query("select r from ItemRequest r where r.requesterId <> ?1")
     List<ItemRequest> findAllOtherUsersRequests(Long userId);
+
 }
 

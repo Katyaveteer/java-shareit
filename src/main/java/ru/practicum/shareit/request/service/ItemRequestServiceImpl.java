@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -28,9 +29,15 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getOwn(Long userId) {
-        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        return repo.findAllOtherUsersRequests(userId).stream().map(ItemRequestMapper::toDto).collect(Collectors.toList());
+        users.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "created");
+        return repo.findByRequesterId(userId, sort).stream()
+                .map(ItemRequestMapper::toDto)
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public ItemRequestDto getById(Long userId, Long requestId) {
