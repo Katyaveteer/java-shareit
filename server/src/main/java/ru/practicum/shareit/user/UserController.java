@@ -20,7 +20,7 @@ public class UserController {
     private final UserService service;
 
     @PostMapping
-    public ResponseEntity<UserDto> create( @RequestBody UserDto dto) {
+    public ResponseEntity<UserDto> create(@RequestBody UserDto dto) {
         UserDto saved = service.create(dto);
         return ResponseEntity.created(URI.create("/users/" + saved.getId())).body(saved);
     }

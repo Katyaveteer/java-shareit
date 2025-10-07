@@ -24,7 +24,7 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<ItemDto> create(@RequestHeader(USER_HEADER) Long ownerId,
-                                           @RequestBody ItemDto dto) {
+                                          @RequestBody ItemDto dto) {
         ItemDto saved = service.create(ownerId, dto);
         return ResponseEntity.created(URI.create("/items/" + saved.getId())).body(saved);
     }

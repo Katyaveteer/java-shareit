@@ -27,7 +27,7 @@ public class ItemWithBookingsDto {
     @NotNull(message = "Статус доступности обязателен")
     private Boolean available;
 
-    private BookingShortGatewayDto  lastBooking;
+    private BookingShortGatewayDto lastBooking;
     private BookingShortGatewayDto nextBooking;
     private List<CommentDto> comments;
 }
