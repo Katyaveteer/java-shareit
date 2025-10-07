@@ -1,0 +1,125 @@
+package ru.practicum.shareit.booking.service;
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class BookingServiceImplTest {
+
+    @Mock private BookingRepository bookingRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private ItemRepository itemRepository;
+
+    @InjectMocks private BookingServiceImpl service;
+
+    private User owner;
+    private User booker;
+    private Item item;
+    private Booking booking;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+
+        owner = User.builder().id(1L).name("Owner").email("o@mail.com").build();
+        booker = User.builder().id(2L).name("Booker").email("b@mail.com").build();
+        item = Item.builder().id(10L).name("Hammer").available(true).owner(owner).build();
+        booking = Booking.builder()
+                .id(100L)
+                .item(item)
+                .booker(booker)
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .status(BookingStatus.WAITING)
+                .build();
+    }
+
+    @Test
+    void create_shouldThrowIfDatesInvalid() {
+        BookingCreateDto dto = BookingCreateDto.builder()
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().minusDays(1))
+                .itemId(10L)
+                .build();
+
+        assertThatThrownBy(() -> service.create(2L, dto))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void create_shouldSaveBooking() {
+        BookingCreateDto dto = BookingCreateDto.builder()
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .itemId(item.getId())
+                .build();
+
+        when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
+        when(bookingRepository.save(any())).thenReturn(booking);
+
+        BookingDto result = service.create(booker.getId(), dto);
+
+        assertThat(result.getItem().getId()).isEqualTo(item.getId());
+        verify(bookingRepository).save(any());
+    }
+
+    @Test
+    void approve_shouldChangeStatus() {
+        when(bookingRepository.findById(100L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any())).thenReturn(booking);
+
+        BookingDto result = service.approve(owner.getId(), 100L, true);
+
+        assertThat(result.getStatus()).isEqualTo(BookingStatus.APPROVED);
+    }
+
+    @Test
+    void getById_shouldThrowIfNotAllowed() {
+        when(bookingRepository.findById(100L)).thenReturn(Optional.of(booking));
+        assertThatThrownBy(() -> service.getById(999L, 100L))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    void getUserBookings_shouldCallRepo() {
+        when(userRepository.existsById(booker.getId())).thenReturn(true);
+        when(bookingRepository.findByBooker_Id(eq(booker.getId()), any(Sort.class))).thenReturn(List.of(booking));
+
+        List<BookingDto> list = service.getUserBookings(booker.getId(), "ALL");
+
+        assertThat(list).hasSize(1);
+        verify(bookingRepository).findByBooker_Id(eq(booker.getId()), any());
+    }
+
+    @Test
+    void getOwnerBookings_shouldFilterProperly() {
+        when(userRepository.existsById(owner.getId())).thenReturn(true);
+        when(bookingRepository.findByOwnerId(eq(owner.getId()), any())).thenReturn(List.of(booking));
+
+        List<BookingDto> result = service.getOwnerBookings(owner.getId(), "WAITING");
+
+        assertThat(result).hasSize(1);
+    }
+}
+

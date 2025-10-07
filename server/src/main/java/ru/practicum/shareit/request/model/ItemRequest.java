@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.user.model.User;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -22,8 +25,12 @@ public class ItemRequest {
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "requester_id", nullable = false)
-    private Long requesterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requester_id", nullable = false)
+    private User requester;
+
+    @Column(nullable = false)
+    private LocalDateTime created;
 
 }
 

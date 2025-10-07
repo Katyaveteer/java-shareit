@@ -14,8 +14,12 @@ public interface RequestRepository extends JpaRepository<ItemRequest, Long> {
 
     List<ItemRequest> findByRequesterId(Long requesterId, Sort sort);
 
-    @Query("select r from ItemRequest r where r.requesterId <> ?1")
+    @Query("SELECT r FROM ItemRequest r WHERE r.requester.id <> ?1 ORDER BY r.created DESC")
     List<ItemRequest> findAllOtherUsersRequests(Long userId);
+
+    List<ItemRequest> findAllByRequesterIdOrderByCreatedDesc(Long requesterId);
+
+    List<ItemRequest> findAllByRequesterIdNotOrderByCreatedDesc(Long requesterId);
 
 }
 

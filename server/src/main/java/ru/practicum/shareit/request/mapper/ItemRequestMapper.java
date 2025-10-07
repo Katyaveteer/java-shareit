@@ -1,30 +1,36 @@
 package ru.practicum.shareit.request.mapper;
 
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemResponseDto;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.user.model.User;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public final class ItemRequestMapper {
-    private ItemRequestMapper() {
-    }
 
-    public static ItemRequestDto toDto(ItemRequest r) {
-        if (r == null) return null;
+    public static ItemRequestDto toItemRequestDto(ItemRequest request, List<Item> items) {
         return ItemRequestDto.builder()
-                .id(r.getId())
-                .description(r.getDescription())
-                .requestorId(r.getRequesterId() != null ? r.getRequesterId() : null)
+                .id(request.getId())
+                .description(request.getDescription())
+                .created(request.getCreated())
+                .items(items.stream()
+                        .map(item -> ItemResponseDto.builder()
+                                .id(item.getId())
+                                .name(item.getName())
+                                .ownerId(item.getOwner().getId())
+                                .build())
+                        .collect(Collectors.toList()))
                 .build();
     }
 
-    public static ItemRequest fromDto(ItemRequestDto d, Long requesterId) {
-        if (d == null) return null;
-        User requester = User.builder().id(requesterId).build();
+    public static ItemRequest toItemRequest(ItemRequestDto dto) {
         return ItemRequest.builder()
-                .id(d.getId())
-                .description(d.getDescription())
-                .requesterId(requester.getId())
+                .id(dto.getId())
+                .description(dto.getDescription())
+                .created(dto.getCreated())
                 .build();
     }
 }
