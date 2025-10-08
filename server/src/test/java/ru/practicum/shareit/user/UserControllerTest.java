@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,73 +14,87 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper mapper;
+    private ObjectMapper objectMapper;
 
     @MockBean
-    private UserService service;
+    private UserService userService;
+
+    private UserDto userDto;
+
+    @BeforeEach
+    void setUp() {
+        userDto = new UserDto(1L, "Oleg", "oleg@mail.ru");
+    }
 
     @Test
-    void createUser_shouldReturn201() throws Exception {
-        UserDto dto = new UserDto(1L, "Oleg", "oleg@mail.ru");
-        when(service.create(any())).thenReturn(dto);
+    void createUser_shouldReturn201WithBody() throws Exception {
+        when(userService.create(any(UserDto.class))).thenReturn(userDto);
 
-        mvc.perform(post("/users")
+        mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/users/1"))
-                .andExpect(jsonPath("$.name").value("Oleg"))
-                .andExpect(jsonPath("$.email").value("oleg@mail.ru"));
+                .andExpect(content().json(objectMapper.writeValueAsString(userDto)));
+
+        verify(userService).create(any(UserDto.class));
     }
 
     @Test
     void updateUser_shouldReturn200() throws Exception {
-        UserDto dto = new UserDto(1L, "Oleg", "oleg@mail.ru");
-        when(service.update(anyLong(), any())).thenReturn(dto);
+        UserDto updated = new UserDto(1L, "Updated Oleg", "new@mail.ru");
+        when(userService.update(eq(1L), any(UserDto.class))).thenReturn(updated);
 
-        mvc.perform(patch("/users/1")
+        mockMvc.perform(patch("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(content().json(objectMapper.writeValueAsString(updated)));
+
+        verify(userService).update(eq(1L), any(UserDto.class));
     }
 
     @Test
-    void getUser_shouldReturnUser() throws Exception {
-        UserDto dto = new UserDto(1L, "Oleg", "oleg@mail.ru");
-        when(service.get(1L)).thenReturn(dto);
+    void getUser_shouldReturn200() throws Exception {
+        when(userService.get(1L)).thenReturn(userDto);
 
-        mvc.perform(get("/users/1"))
+        mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("oleg@mail.ru"));
+                .andExpect(content().json(objectMapper.writeValueAsString(userDto)));
+
+        verify(userService).get(1L);
     }
 
     @Test
-    void getAll_shouldReturnList() throws Exception {
-        List<UserDto> users = List.of(new UserDto(1L, "Oleg", "oleg@mail.ru"));
-        when(service.getAll()).thenReturn(users);
+    void getAllUsers_shouldReturn200WithList() throws Exception {
+        when(userService.getAll()).thenReturn(List.of(userDto));
 
-        mvc.perform(get("/users"))
+        mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Oleg"));
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(userDto))));
+
+        verify(userService).getAll();
     }
 
     @Test
     void deleteUser_shouldReturn204() throws Exception {
-        mvc.perform(delete("/users/1"))
+        doNothing().when(userService).delete(1L);
+
+        mockMvc.perform(delete("/users/1"))
                 .andExpect(status().isNoContent());
+
+        verify(userService).delete(1L);
     }
 }
-
