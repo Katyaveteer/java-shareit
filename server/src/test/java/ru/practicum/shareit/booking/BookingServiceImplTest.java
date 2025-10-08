@@ -65,13 +65,19 @@ class BookingServiceImplTest {
     @Test
     void create_shouldThrowIfDatesInvalid() {
         BookingCreateDto dto = BookingCreateDto.builder()
-                .start(LocalDateTime.now().plusDays(1))
-                .end(LocalDateTime.now().minusDays(1))
-                .itemId(10L)
+                .start(LocalDateTime.now().plusDays(2))
+                .end(LocalDateTime.now().plusDays(1)) // конец раньше начала
+                .itemId(item.getId())
                 .build();
 
-        assertThatThrownBy(() -> service.create(2L, dto))
-                .isInstanceOf(BadRequestException.class);
+        when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> service.create(booker.getId(), dto))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Дата окончания должна быть позже даты начала");
+
+        verifyNoInteractions(bookingRepository);
     }
 
     @Test
@@ -89,6 +95,7 @@ class BookingServiceImplTest {
         BookingDto result = service.create(booker.getId(), dto);
 
         assertThat(result.getItem().getId()).isEqualTo(item.getId());
+        assertThat(result.getBooker().getId()).isEqualTo(booker.getId());
         verify(bookingRepository).save(any());
     }
 
@@ -105,29 +112,33 @@ class BookingServiceImplTest {
     @Test
     void getById_shouldThrowIfNotAllowed() {
         when(bookingRepository.findById(100L)).thenReturn(Optional.of(booking));
+
         assertThatThrownBy(() -> service.getById(999L, 100L))
                 .isInstanceOf(ForbiddenException.class);
     }
 
     @Test
-    void getUserBookings_shouldCallRepo() {
+    void getUserBookings_shouldReturnList() {
         when(userRepository.existsById(booker.getId())).thenReturn(true);
-        when(bookingRepository.findByBooker_Id(eq(booker.getId()), any(Sort.class))).thenReturn(List.of(booking));
+        when(bookingRepository.findByBooker_Id(eq(booker.getId()), any(Sort.class)))
+                .thenReturn(List.of(booking));
 
         List<BookingDto> list = service.getUserBookings(booker.getId(), "ALL");
 
         assertThat(list).hasSize(1);
+        assertThat(list.getFirst().getId()).isEqualTo(booking.getId());
         verify(bookingRepository).findByBooker_Id(eq(booker.getId()), any());
     }
 
     @Test
     void getOwnerBookings_shouldFilterProperly() {
         when(userRepository.existsById(owner.getId())).thenReturn(true);
-        when(bookingRepository.findByOwnerId(eq(owner.getId()), any())).thenReturn(List.of(booking));
+        when(bookingRepository.findByOwnerId(eq(owner.getId()), any()))
+                .thenReturn(List.of(booking));
 
         List<BookingDto> result = service.getOwnerBookings(owner.getId(), "WAITING");
 
         assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getStatus()).isEqualTo(BookingStatus.WAITING);
     }
 }
-

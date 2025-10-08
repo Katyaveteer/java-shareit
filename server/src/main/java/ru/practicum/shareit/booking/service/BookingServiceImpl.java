@@ -45,6 +45,9 @@ public class BookingServiceImpl implements BookingService {
         if (!item.getAvailable()) {
             throw new BadRequestException("Товар недоступен для бронирования");
         }
+        if (dto.getEnd().isBefore(dto.getStart()) || dto.getEnd().isEqual(dto.getStart())) {
+            throw new BadRequestException("Дата окончания должна быть позже даты начала");
+        }
         if (item.getOwner().getId().equals(userId)) {
             throw new ForbiddenException("Владелец не может забронировать свой собственный товар");
         }
