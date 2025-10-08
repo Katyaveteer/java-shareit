@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.exception.BadRequestException;
+
+import java.time.LocalDateTime;
 
 
 @Controller
@@ -32,6 +35,24 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<Object> bookItem(@RequestHeader("X-Sharer-User-Id") long userId,
                                            @RequestBody @Valid BookingCreateDto requestDto) {
+
+        LocalDateTime start = requestDto.getStart();
+        LocalDateTime end = requestDto.getEnd();
+
+
+        if (start == null || end == null) {
+            throw new BadRequestException("Даты начала и окончания не должны быть нулевыми.");
+        }
+
+
+        if (!end.isAfter(start)) {
+            throw new BadRequestException("Дата окончания должна быть после даты начала.");
+        }
+
+
+        if (start.isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Дата начала не должна быть в прошлом.");
+        }
 
         return bookingClient.bookItem(userId, requestDto);
     }
