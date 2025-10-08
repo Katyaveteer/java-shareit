@@ -1,5 +1,4 @@
-
-package ru.practicum.shareit.booking.dto;
+package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -28,10 +27,10 @@ class BookItemRequestDtoJsonTest {
                 .end(end)
                 .build();
 
-        // When
+
         String json = objectMapper.writeValueAsString(dto);
 
-        // Then
+
         assertThat(json).contains("\"start\":\"2024-01-01T10:00:00\"");
         assertThat(json).contains("\"end\":\"2024-01-02T10:00:00\"");
         assertThat(json).contains("\"itemId\":1");
@@ -39,13 +38,13 @@ class BookItemRequestDtoJsonTest {
 
     @Test
     void shouldDeserializeDatesCorrectly() throws Exception {
-        // Given
+
         String json = "{\"itemId\":1,\"start\":\"2024-01-01T10:00:00\",\"end\":\"2024-01-02T10:00:00\"}";
 
-        // When
+
         BookItemRequestDto dto = objectMapper.readValue(json, BookItemRequestDto.class);
 
-        // Then
+
         assertThat(dto.getItemId()).isEqualTo(1L);
         assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2024, 1, 1, 10, 0));
         assertThat(dto.getEnd()).isEqualTo(LocalDateTime.of(2024, 1, 2, 10, 0));

@@ -1,4 +1,3 @@
-
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,9 +10,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemController.class)
@@ -30,7 +31,7 @@ class ItemControllerTest {
 
     @Test
     void create_shouldReturnOkForValidItem() throws Exception {
-        // Given
+
         ItemDto itemDto = ItemDto.builder()
                 .name("Drill")
                 .description("Powerful drill")
@@ -40,7 +41,7 @@ class ItemControllerTest {
         when(itemClient.createItem(anyLong(), any(ItemDto.class)))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
+
         mockMvc.perform(post("/items")
                         .header("X-Sharer-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -50,14 +51,14 @@ class ItemControllerTest {
 
     @Test
     void create_shouldReturnBadRequestForInvalidItem() throws Exception {
-        // Given
+
         ItemDto invalidItem = ItemDto.builder()
                 .name("")  // Invalid: empty name
                 .description("")  // Invalid: empty description
                 .available(null)  // Invalid: null available
                 .build();
 
-        // When & Then
+
         mockMvc.perform(post("/items")
                         .header("X-Sharer-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +76,7 @@ class ItemControllerTest {
         when(itemClient.addComment(anyLong(), anyLong(), any(CommentDto.class)))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
+
         mockMvc.perform(post("/items/1/comment")
                         .header("X-Sharer-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -85,11 +86,11 @@ class ItemControllerTest {
 
     @Test
     void search_shouldReturnOk() throws Exception {
-        // Given
+
         when(itemClient.searchItems("drill"))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
+
         mockMvc.perform(get("/items/search")
                         .param("text", "drill"))
                 .andExpect(status().isOk());

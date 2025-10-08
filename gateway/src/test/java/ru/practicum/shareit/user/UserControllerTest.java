@@ -38,7 +38,7 @@ class UserControllerTest {
         when(userClient.createUser(any(UserDto.class)))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
+
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
@@ -53,7 +53,7 @@ class UserControllerTest {
                 .email("invalid-email")  // Invalid email
                 .build();
 
-        // When & Then
+
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUser)))
@@ -71,7 +71,6 @@ class UserControllerTest {
         when(userClient.updateUser(eq(1L), any(UserDto.class)))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
         mockMvc.perform(patch("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
@@ -84,7 +83,6 @@ class UserControllerTest {
         when(userClient.getUser(1L))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
-        // When & Then
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk());
     }

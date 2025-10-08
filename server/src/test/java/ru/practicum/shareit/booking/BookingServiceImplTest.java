@@ -1,15 +1,16 @@
-package ru.practicum.shareit.booking.service;
+package ru.practicum.shareit.booking;
 
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.booking.dto.BookingCreateDto;
-import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.item.model.Item;
@@ -21,16 +22,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class BookingServiceImplTest {
 
-    @Mock private BookingRepository bookingRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private ItemRepository itemRepository;
+    @Mock
+    private BookingRepository bookingRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ItemRepository itemRepository;
 
-    @InjectMocks private BookingServiceImpl service;
+    @InjectMocks
+    private BookingServiceImpl service;
 
     private User owner;
     private User booker;
