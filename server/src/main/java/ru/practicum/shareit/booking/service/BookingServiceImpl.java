@@ -76,6 +76,9 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStatus() != BookingStatus.WAITING) {
             throw new ConflictException("Бронирование уже обработано");
         }
+        if (booking.getStart().equals(booking.getEnd())) {
+            throw new BadRequestException("Дата начала и конца бронирования не могут совпадать");
+        }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         return BookingMapper.toDto(bookingRepository.save(booking));
