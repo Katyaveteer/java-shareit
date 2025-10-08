@@ -14,7 +14,9 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,8 +53,8 @@ class BookingControllerTest {
                 .id(10L)
                 .start(LocalDateTime.now().plusDays(1))
                 .end(LocalDateTime.now().plusDays(2))
-                .item(item)
-                .booker(user)
+                .item(ItemMapper.toShortDto(item))
+                .booker(UserMapper.toShortDto(user))
                 .status(BookingStatus.WAITING)
                 .build();
 
