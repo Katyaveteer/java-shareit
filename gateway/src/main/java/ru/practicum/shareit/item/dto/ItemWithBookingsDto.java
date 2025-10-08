@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.BookingShortGatewayDto;
+import ru.practicum.shareit.booking.BookingShortDto;
 
 import java.util.List;
 
@@ -26,7 +26,9 @@ public class ItemWithBookingsDto {
     @NotNull(message = "Статус доступности обязателен")
     private Boolean available;
 
-    private BookingShortGatewayDto lastBooking;
-    private BookingShortGatewayDto nextBooking;
-    private List<CommentDto> comments;
+    private BookingShortDto lastBooking;
+
+    private BookingShortDto nextBooking;
+
+    private List<CommentDto> comments = List.of();
 }

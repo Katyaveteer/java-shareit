@@ -8,15 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BookingController.class)
@@ -31,45 +32,84 @@ class BookingControllerGatewayTest {
     @MockBean
     private BookingClient bookingClient;
 
-    private BookItemRequestDto validRequest;
-    private BookItemRequestDto invalidRequest;
+    private BookingCreateDto validBooking;
+    private BookingCreateDto invalidBooking;
 
     @BeforeEach
     void setUp() {
-        validRequest = BookItemRequestDto.builder()
-                .itemId(1)
+        validBooking = BookingCreateDto.builder()
+                .itemId(1L)
                 .start(LocalDateTime.now().plusHours(1))
                 .end(LocalDateTime.now().plusDays(1))
                 .build();
 
-        invalidRequest = BookItemRequestDto.builder()
-                .itemId(1)
-                .start(LocalDateTime.now().minusHours(1)) // в прошлом
-                .end(LocalDateTime.now().minusDays(1)) // в прошлом
+        invalidBooking = BookingCreateDto.builder()
+                .itemId(1L)
+                .start(LocalDateTime.now().minusHours(1))
+                .end(LocalDateTime.now().minusDays(1))
                 .build();
     }
 
     @Test
-    void shouldReturn400_whenBookItemRequestDtoIsInvalid() throws Exception {
+    void shouldReturn400_whenCreateBookingWithInvalidDates() throws Exception {
         mockMvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
+                        .header("X-Sharer-User-Id", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .content(objectMapper.writeValueAsString(invalidBooking)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void shouldCallBookingClient_whenBookItemRequestDtoIsValid() throws Exception {
-        when(bookingClient.bookItem(anyLong(), any(BookItemRequestDto.class)))
-                .thenReturn(null);
+    void shouldCallBookingClient_whenCreateBookingWithValidDates() throws Exception {
+        when(bookingClient.bookItem(anyLong(), any(BookingCreateDto.class)))
+                .thenReturn(ResponseEntity.ok().build());
 
         mockMvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
+                        .header("X-Sharer-User-Id", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest)))
+                        .content(objectMapper.writeValueAsString(validBooking)))
                 .andExpect(status().isOk());
 
-        verify(bookingClient).bookItem(anyLong(), any(BookItemRequestDto.class));
+        verify(bookingClient).bookItem(anyLong(), any(BookingCreateDto.class));
+    }
+
+    @Test
+    void shouldCallBookingClient_whenGetBookingById() throws Exception {
+        when(bookingClient.getBooking(anyLong(), anyLong()))
+                .thenReturn(ResponseEntity.ok().build());
+
+        mockMvc.perform(get("/bookings/1")
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isOk());
+
+        verify(bookingClient).getBooking(anyLong(), anyLong());
+    }
+
+    @Test
+    void shouldCallBookingClient_whenApproveBooking() throws Exception {
+        when(bookingClient.approveBooking(anyLong(), anyLong(), anyBoolean()))
+                .thenReturn(ResponseEntity.ok().build());
+
+        mockMvc.perform(patch("/bookings/1/approve")
+                        .header("X-Sharer-User-Id", 1L)
+                        .param("approved", "true"))
+                .andExpect(status().isOk());
+
+        verify(bookingClient).approveBooking(anyLong(), anyLong(), anyBoolean());
+    }
+
+    @Test
+    void shouldCallBookingClient_whenGetBookingsList() throws Exception {
+        when(bookingClient.getBookings(anyLong(), any(), anyInt(), anyInt()))
+                .thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        mockMvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", 1L)
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk());
+
+        verify(bookingClient).getBookings(anyLong(), any(), anyInt(), anyInt());
     }
 }
-

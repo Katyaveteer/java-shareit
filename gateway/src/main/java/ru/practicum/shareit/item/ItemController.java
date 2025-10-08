@@ -23,7 +23,7 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader(USER_HEADER) Long ownerId,
                                          @Valid @RequestBody ItemDto dto) {
-        log.info("Creating item: {} for user {}", dto, ownerId);
+
         return itemClient.createItem(ownerId, dto);
     }
 
@@ -31,26 +31,26 @@ public class ItemController {
     public ResponseEntity<Object> update(@RequestHeader(USER_HEADER) Long userId,
                                          @PathVariable Long itemId,
                                          @Valid @RequestBody ItemDto dto) {
-        log.info("Updating item {} with data: {} by user {}", itemId, dto, userId);
+
         return itemClient.updateItem(userId, itemId, dto);
     }
 
     @GetMapping("/{itemId}")
     public ResponseEntity<Object> get(@RequestHeader(USER_HEADER) Long userId,
                                       @PathVariable Long itemId) {
-        log.info("Getting item {} for user {}", itemId, userId);
+
         return itemClient.getItem(userId, itemId);
     }
 
     @GetMapping
     public ResponseEntity<Object> ownerItems(@RequestHeader(USER_HEADER) Long userId) {
-        log.info("Getting items for owner {}", userId);
+
         return itemClient.getUserItems(userId);
     }
 
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam String text) {
-        log.info("Searching items with text: {}", text);
+
         return itemClient.searchItems(text);
     }
 
@@ -58,7 +58,7 @@ public class ItemController {
     public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
                                              @PathVariable Long itemId,
                                              @Valid @RequestBody CommentDto commentDto) {
-        log.info("Adding comment to item {} by user {}", itemId, userId);
+
         return itemClient.addComment(userId, itemId, commentDto);
     }
 }

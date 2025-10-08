@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -68,7 +69,7 @@ class UserControllerTest {
                 .email("john.updated@email.com")
                 .build();
 
-        when(userClient.updateUser(eq(1L), any(UserDto.class)))
+        when(userClient.updateUser(eq(1L), any(UserUpdateDto.class)))
                 .thenReturn(org.springframework.http.ResponseEntity.ok().build());
 
         mockMvc.perform(patch("/users/1")

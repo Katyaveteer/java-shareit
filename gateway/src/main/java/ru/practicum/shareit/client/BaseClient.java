@@ -12,6 +12,7 @@ public class BaseClient {
     protected final RestTemplate rest;
 
     public BaseClient(RestTemplate rest) {
+
         this.rest = rest;
     }
 
