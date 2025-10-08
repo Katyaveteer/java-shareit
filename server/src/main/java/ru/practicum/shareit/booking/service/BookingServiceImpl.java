@@ -33,21 +33,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto create(Long userId, BookingCreateDto dto) {
-        if (dto == null) {
-            throw new BadRequestException("Данные бронирования обязательны");
-        }
 
-        if (dto.getStart() == null || dto.getEnd() == null) {
-            throw new BadRequestException("Дата начала и окончания обязательны");
-        }
+        if (dto == null) throw new BadRequestException("Данные бронирования обязательны");
 
-        if (!dto.getEnd().isAfter(dto.getStart())) {
-            throw new BadRequestException("Дата окончания должна быть позже даты начала");
-        }
-
-        if (!dto.getStart().isAfter(LocalDateTime.now())) {
-            throw new BadRequestException("Дата начала должна быть в будущем");
-        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -75,9 +63,6 @@ public class BookingServiceImpl implements BookingService {
         }
         if (booking.getStatus() != BookingStatus.WAITING) {
             throw new ConflictException("Бронирование уже обработано");
-        }
-        if (booking.getStart().equals(booking.getEnd())) {
-            throw new BadRequestException("Дата начала и конца бронирования не могут совпадать");
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
