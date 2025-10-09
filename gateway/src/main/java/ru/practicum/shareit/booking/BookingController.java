@@ -67,5 +67,6 @@ public class BookingController {
         return bookingClient.approveBooking(ownerId, bookingId, approved);
     }
 
+
 }
 
