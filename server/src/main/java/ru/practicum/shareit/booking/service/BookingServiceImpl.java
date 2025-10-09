@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -58,20 +58,30 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto approve(Long ownerId, Long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
-        if (!booking.getItem().getOwner().getId().equals(ownerId)) {
-            throw new ForbiddenException("Только владелец может подтверждать бронирование");
+        Item item = booking.getItem();
+        if (item == null) {
+            throw new NotFoundException("Вещь не найдена");
         }
+
+        if (!item.getOwner().getId().equals(ownerId)) {
+            throw new ForbiddenException("Подтверждать бронирование может только владелец вещи");
+        }
+
         if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new ConflictException("Бронирование уже обработано");
+            throw new BadRequestException("Бронирование уже подтверждено или отклонено");
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-        return BookingMapper.toDto(bookingRepository.save(booking));
+        bookingRepository.save(booking);
+
+        return BookingMapper.toDto(booking);
     }
+
 
     @Override
     public BookingDto getById(Long userId, Long bookingId) {

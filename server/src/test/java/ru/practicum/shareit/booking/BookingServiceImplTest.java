@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,6 +14,7 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -62,6 +62,7 @@ class BookingServiceImplTest {
                 .build();
     }
 
+
     @Test
     void create_shouldThrowIfDatesInvalid() {
         BookingCreateDto dto = BookingCreateDto.builder()
@@ -99,8 +100,9 @@ class BookingServiceImplTest {
         verify(bookingRepository).save(any());
     }
 
+
     @Test
-    void approve_shouldChangeStatus() {
+    void approve_shouldChangeStatusToApproved() {
         when(bookingRepository.findById(100L)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any())).thenReturn(booking);
 
@@ -108,6 +110,40 @@ class BookingServiceImplTest {
 
         assertThat(result.getStatus()).isEqualTo(BookingStatus.APPROVED);
     }
+
+    @Test
+    void approve_shouldChangeStatusToRejected() {
+        when(bookingRepository.findById(100L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any())).thenReturn(booking);
+
+        BookingDto result = service.approve(owner.getId(), 100L, false);
+
+        assertThat(result.getStatus()).isEqualTo(BookingStatus.REJECTED);
+    }
+
+    @Test
+    void approve_shouldThrowNotFound_whenBookingMissing() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.approve(owner.getId(), 999L, true))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void approve_shouldThrowForbidden_whenUserNotOwner() {
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
+        assertThatThrownBy(() -> service.approve(999L, booking.getId(), true))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    void approve_shouldThrowBadRequest_whenAlreadyProcessed() {
+        booking.setStatus(BookingStatus.APPROVED);
+        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> service.approve(owner.getId(), booking.getId(), true))
+                .isInstanceOf(BadRequestException.class);
+    }
+
 
     @Test
     void getById_shouldThrowIfNotAllowed() {
@@ -129,6 +165,4 @@ class BookingServiceImplTest {
         assertThat(list.getFirst().getId()).isEqualTo(booking.getId());
         verify(bookingRepository).findByBooker_Id(eq(booker.getId()), any());
     }
-
-
 }
