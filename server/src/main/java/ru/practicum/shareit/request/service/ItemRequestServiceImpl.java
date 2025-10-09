@@ -27,6 +27,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository users;
 
     @Override
+    @Transactional
     public ItemRequestDto create(Long userId, ItemRequestDto dto) {
         User user = users.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

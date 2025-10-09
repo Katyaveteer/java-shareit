@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
@@ -19,6 +20,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository repo;
 
     @Override
+    @Transactional
     public UserDto create(UserDto dto) {
         UserValidator.validator(dto);
 
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto update(Long id, UserDto dto) {
         User existing = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

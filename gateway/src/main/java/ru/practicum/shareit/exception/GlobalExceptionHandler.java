@@ -55,5 +55,13 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleThrowable(Throwable e) {
         return new ErrorResponse("Произошла непредвиденная ошибка");
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbidden(final ForbiddenException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+
 }
 

@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.repository;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -54,14 +55,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.status = ?2")
     List<Booking> findByOwnerIdAndStatus(Long ownerId, BookingStatus status, Sort sort);
 
-    Optional<Booking> findFirstByItem_IdAndStartBeforeOrderByEndDesc(Long itemId, LocalDateTime now);
+    @Query("select b from Booking b " +
+            "join fetch b.booker " +
+            "where b.item.id = :itemId and b.start < :now " +
+            "order by b.end desc")
+    Optional<Booking> findFirstPastBookingByItemId(@Param("itemId") Long itemId,
+                                                   @Param("now") LocalDateTime now);
 
-    Optional<Booking> findFirstByItem_IdAndStartAfterOrderByStartAsc(Long itemId, LocalDateTime now);
+    @Query("select b from Booking b " +
+            "join fetch b.booker " +
+            "where b.item.id = :itemId and b.start > :now " +
+            "order by b.start asc")
+    Optional<Booking> findFirstFutureBookingByItemId(@Param("itemId") Long itemId,
+                                                     @Param("now") LocalDateTime now);
 
     boolean existsByBooker_IdAndItem_IdAndStatusAndEndBefore(
             Long bookerId,
             Long itemId,
             BookingStatus status,
             LocalDateTime end);
+
+    @Query("select b from Booking b " +
+            "join fetch b.item i " +
+            "join fetch i.owner " +
+            "join fetch b.booker " +
+            "where b.id = :bookingId")
+    Optional<Booking> findByIdWithDetails(@Param("bookingId") Long bookingId);
 }
 

@@ -60,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto approve(Long ownerId, Long bookingId, boolean approved) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         Item item = booking.getItem();
@@ -78,6 +78,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         bookingRepository.save(booking);
+        bookingRepository.saveAndFlush(booking);
 
         return BookingMapper.toDto(booking);
     }

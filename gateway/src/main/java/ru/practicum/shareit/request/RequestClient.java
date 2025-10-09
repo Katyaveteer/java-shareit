@@ -34,7 +34,7 @@ public class RequestClient extends BaseClient {
 
     public ResponseEntity<Object> getAllRequests(Long userId) {
 
-        return get("/all?from={from}&size={size}", userId);
+        return get("/all", userId);
     }
 
     public ResponseEntity<Object> getRequestById(Long userId, Long requestId) {

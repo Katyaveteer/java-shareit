@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
@@ -7,6 +8,7 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -36,6 +38,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
+    @Transactional
     public ItemDto create(Long ownerId, ItemDto dto) {
 
 
@@ -52,13 +55,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto update(Long ownerId, Long itemId, ItemDto dto) {
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
         if (!item.getOwner().getId().equals(ownerId)) {
-            throw new NotFoundException("Не владелец");
+            throw new ForbiddenException("Не владелец");
         }
 
         if (dto.getName() != null && !dto.getName().isBlank()) {
@@ -86,12 +90,12 @@ public class ItemServiceImpl implements ItemService {
 
         if (item.getOwner().getId().equals(userId)) {
             lastBooking = bookingRepository
-                    .findFirstByItem_IdAndStartBeforeOrderByEndDesc(itemId, LocalDateTime.now())
+                    .findFirstPastBookingByItemId(itemId, LocalDateTime.now())
                     .map(BookingMapper::toShortDto)
                     .orElse(null);
 
             nextBooking = bookingRepository
-                    .findFirstByItem_IdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())
+                    .findFirstFutureBookingByItemId(itemId, LocalDateTime.now())
                     .map(BookingMapper::toShortDto)
                     .orElse(null);
         }
@@ -111,12 +115,12 @@ public class ItemServiceImpl implements ItemService {
         return items.stream()
                 .map(item -> {
                     BookingShortDto lastBooking = bookingRepository
-                            .findFirstByItem_IdAndStartBeforeOrderByEndDesc(item.getId(), LocalDateTime.now())
+                            .findFirstPastBookingByItemId(item.getId(), LocalDateTime.now())
                             .map(BookingMapper::toShortDto)
                             .orElse(null);
 
                     BookingShortDto nextBooking = bookingRepository
-                            .findFirstByItem_IdAndStartAfterOrderByStartAsc(item.getId(), LocalDateTime.now())
+                            .findFirstFutureBookingByItemId(item.getId(), LocalDateTime.now())
                             .map(BookingMapper::toShortDto)
                             .orElse(null);
 
