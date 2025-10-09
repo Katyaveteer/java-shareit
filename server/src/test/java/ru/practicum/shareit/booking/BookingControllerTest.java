@@ -87,7 +87,7 @@ class BookingControllerTest {
         bookingDto.setStatus(BookingStatus.APPROVED);
         when(bookingService.approve(anyLong(), anyLong(), anyBoolean())).thenReturn(bookingDto);
 
-        mockMvc.perform(patch("/bookings/{id}?approved=true", 10L)
+        mockMvc.perform(patch("/bookings/{id}/approve?approved=true", 10L)  // ← добавлено /approve
                         .header("X-Sharer-User-Id", 2L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));
