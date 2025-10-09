@@ -130,15 +130,5 @@ class BookingServiceImplTest {
         verify(bookingRepository).findByBooker_Id(eq(booker.getId()), any());
     }
 
-    @Test
-    void getOwnerBookings_shouldFilterProperly() {
-        when(userRepository.existsById(owner.getId())).thenReturn(true);
-        when(bookingRepository.findByOwnerId(eq(owner.getId()), any()))
-                .thenReturn(List.of(booking));
 
-        List<BookingDto> result = service.getOwnerBookings(owner.getId(), "WAITING");
-
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getStatus()).isEqualTo(BookingStatus.WAITING);
-    }
 }

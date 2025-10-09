@@ -1,9 +1,6 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -65,10 +62,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemRequestDto> getAll(Long userId, int from, int size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("created").descending());
-        List<ItemRequest> requests = repo.findAllByRequesterIdNotOrderByCreatedDesc(userId);
-        return toDtoList(requests);
+    public List<ItemRequestDto> getAll(Long userId) {
+        users.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        List<ItemRequest> allRequests = repo.findAllByRequesterIdNotOrderByCreatedDesc(userId);
+
+        return toDtoList(allRequests);
     }
 
     private List<ItemRequestDto> toDtoList(List<ItemRequest> requests) {

@@ -20,6 +20,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -85,49 +86,70 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getUserBookings(Long userId, String state) {
-
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("Пользователь не найден");
         }
-
 
         LocalDateTime now = LocalDateTime.now();
         Sort sort = Sort.by("start").descending();
         List<Booking> bookings;
 
         switch (state.toUpperCase()) {
-            case "CURRENT" ->
-                    bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, now, now, sort);
-            case "PAST" -> bookings = bookingRepository.findByBooker_IdAndEndIsBefore(userId, now, sort);
-            case "FUTURE" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStart().isAfter(now)).toList();
-            case "WAITING" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.WAITING).toList();
-            case "REJECTED" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.REJECTED).toList();
-            default -> bookings = bookingRepository.findByBooker_Id(userId, sort);
+            case "CURRENT":
+                bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, now, now, sort);
+                break;
+            case "PAST":
+                bookings = bookingRepository.findByBooker_IdAndEndIsBefore(userId, now, sort);
+                break;
+            case "FUTURE":
+                bookings = bookingRepository.findByBooker_IdAndStartIsAfter(userId, now, sort);
+                break;
+            case "WAITING":
+                bookings = bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.WAITING, sort);
+                break;
+            case "REJECTED":
+                bookings = bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.REJECTED, sort);
+                break;
+            default:
+                bookings = bookingRepository.findByBooker_Id(userId, sort);
+                break;
         }
-        return bookings.stream().map(BookingMapper::toDto).toList();
+
+        return bookings.stream()
+                .map(BookingMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, String state) {
-
         if (!userRepository.existsById(ownerId)) {
             throw new NotFoundException("Пользователь не найден");
         }
 
         LocalDateTime now = LocalDateTime.now();
         Sort sort = Sort.by("start").descending();
-        List<Booking> bookings = bookingRepository.findByOwnerId(ownerId, sort);
+        List<Booking> bookings;
 
-        return bookings.stream().filter(b -> switch (state.toUpperCase()) {
-            case "CURRENT" -> b.getStart().isBefore(now) && b.getEnd().isAfter(now);
-            case "PAST" -> b.getEnd().isBefore(now);
-            case "FUTURE" -> b.getStart().isAfter(now);
-            case "WAITING" -> b.getStatus() == BookingStatus.WAITING;
-            case "REJECTED" -> b.getStatus() == BookingStatus.REJECTED;
-            default -> true;
-        }).map(BookingMapper::toDto).toList();
+        switch (state.toUpperCase()) {
+            case "CURRENT":
+                bookings = bookingRepository.findCurrentBookingsForOwner(ownerId, now, sort);
+                break;
+            case "PAST":
+                bookings = bookingRepository.findPastBookingsForOwner(ownerId, now, sort);
+                break;
+            case "FUTURE":
+                bookings = bookingRepository.findFutureBookingsForOwner(ownerId, now, sort);
+                break;
+            case "WAITING":
+                bookings = bookingRepository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, sort);
+                break;
+            case "REJECTED":
+                bookings = bookingRepository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, sort);
+                break;
+            default:
+                bookings = bookingRepository.findByOwnerId(ownerId, sort);
+        }
+
+        return bookings.stream().map(BookingMapper::toDto).collect(Collectors.toList());
     }
 }

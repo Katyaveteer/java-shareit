@@ -11,5 +11,5 @@ public interface ItemRequestService {
 
     ItemRequestDto getById(Long userId, Long requestId);
 
-    List<ItemRequestDto> getAll(Long userId, int from, int size); // paged later
+    List<ItemRequestDto> getAll(Long userId); // paged later
 }

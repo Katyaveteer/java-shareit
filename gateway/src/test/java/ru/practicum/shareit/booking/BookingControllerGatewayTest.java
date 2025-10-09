@@ -100,16 +100,16 @@ class BookingControllerGatewayTest {
 
     @Test
     void shouldCallBookingClient_whenGetBookingsList() throws Exception {
-        when(bookingClient.getBookings(anyLong(), any(), anyInt(), anyInt()))
+
+        when(bookingClient.getBookings(anyLong(), any(BookingState.class)))
                 .thenReturn(ResponseEntity.ok(Collections.emptyList()));
 
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", 1L)
-                        .param("state", "ALL")
-                        .param("from", "0")
-                        .param("size", "10"))
+                        .param("state", "ALL"))
                 .andExpect(status().isOk());
 
-        verify(bookingClient).getBookings(anyLong(), any(), anyInt(), anyInt());
+        // Verify client was called correctly
+        verify(bookingClient).getBookings(anyLong(), any(BookingState.class));
     }
 }

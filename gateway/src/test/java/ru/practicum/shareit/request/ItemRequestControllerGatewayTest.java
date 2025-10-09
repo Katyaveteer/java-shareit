@@ -80,15 +80,13 @@ class ItemRequestControllerGatewayTest {
 
     @Test
     void shouldCallGetAllRequests() throws Exception {
-        when(requestClient.getAllRequests(anyLong(), any(), any())).thenReturn(null);
+        when(requestClient.getAllRequests(anyLong())).thenReturn(null);
 
         mockMvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "0")
-                        .param("size", "10"))
+                        .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isOk());
 
-        verify(requestClient).getAllRequests(anyLong(), any(), any());
+        verify(requestClient).getAllRequests(anyLong());
     }
 
     @Test

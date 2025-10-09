@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -59,12 +60,10 @@ class ItemRequestControllerTest {
 
     @Test
     void getAllRequests_shouldReturnList() throws Exception {
-        when(requestService.getAll(anyLong(), anyInt(), anyInt()))
+        when(requestService.getAll(anyLong()))
                 .thenReturn(List.of(new ItemRequestDto(1L, "Need ladder", LocalDateTime.now(), List.of())));
 
         mockMvc.perform(get("/requests/all")
-                        .param("from", "0")
-                        .param("size", "10")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].description", is("Need ladder")));
