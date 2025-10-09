@@ -50,8 +50,8 @@ class UserControllerTest {
     void create_shouldReturnBadRequestForInvalidUser() throws Exception {
         // Given
         UserDto invalidUser = UserDto.builder()
-                .name("")  // Invalid: empty name
-                .email("invalid-email")  // Invalid email
+                .name("")
+                .email("invalid-email")
                 .build();
 
 

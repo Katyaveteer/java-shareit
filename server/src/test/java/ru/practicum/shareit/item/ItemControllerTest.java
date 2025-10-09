@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
@@ -128,7 +129,7 @@ class ItemControllerTest {
 
     @Test
     void addComment_shouldReturnSavedComment() throws Exception {
-        Mockito.when(itemService.addComment(eq(1L), eq(1L), any(CommentDto.class)))
+        Mockito.when(itemService.addComment(eq(1L), eq(1L), any(CommentCreateDto.class)))
                 .thenReturn(commentDto);
 
         mockMvc.perform(post("/items/1/comment")

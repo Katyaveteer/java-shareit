@@ -29,6 +29,6 @@ public class ItemWithBookingsDto {
     private BookingShortDto lastBooking;
 
     private BookingShortDto nextBooking;
-
+    @Builder.Default
     private List<CommentDto> comments = List.of();
 }

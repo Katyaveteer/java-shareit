@@ -8,9 +8,10 @@ import lombok.Setter;
 
 import java.util.List;
 
-@Builder
+
 @Getter
 @Setter
+@Builder
 public class ItemDto {
 
     @NotBlank(message = "Название вещи не может быть пустым")
@@ -23,6 +24,6 @@ public class ItemDto {
     private Boolean available;
 
     private Long requestId;
-
+    @Builder.Default
     private List<CommentDto> comments = List.of();
 }

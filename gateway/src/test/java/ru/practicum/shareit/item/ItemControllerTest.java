@@ -53,9 +53,9 @@ class ItemControllerTest {
     void create_shouldReturnBadRequestForInvalidItem() throws Exception {
 
         ItemDto invalidItem = ItemDto.builder()
-                .name("")  // Invalid: empty name
-                .description("")  // Invalid: empty description
-                .available(null)  // Invalid: null available
+                .name("")
+                .description("")
+                .available(null)
                 .build();
 
 
@@ -68,7 +68,7 @@ class ItemControllerTest {
 
     @Test
     void addComment_shouldReturnOkForValidComment() throws Exception {
-        // Given
+
         CommentDto commentDto = CommentDto.builder()
                 .text("Great item!")
                 .build();

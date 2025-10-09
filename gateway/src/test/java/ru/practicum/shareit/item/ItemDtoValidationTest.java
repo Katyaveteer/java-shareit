@@ -27,11 +27,10 @@ class ItemDtoValidationTest {
 
     @Test
     void shouldFailValidation_whenItemWithBookingsDtoHasNullOrBlankFields() {
-        // DTO с пустыми или null полями
         ItemWithBookingsDto dto = ItemWithBookingsDto.builder()
-                .name("")  // пустое название
-                .description("   ")  // пустое описание
-                .available(null)  // null статус
+                .name("")
+                .description("   ")
+                .available(null)
                 .lastBooking(null)
                 .nextBooking(null)
                 .comments(null)

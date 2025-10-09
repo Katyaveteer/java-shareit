@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
@@ -157,7 +158,7 @@ class ItemServiceImplTest {
         )).thenReturn(true);
         when(commentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        CommentDto dto = itemService.addComment(1L, 10L, new CommentDto(null, "good", null, null));
+        CommentDto dto = itemService.addComment(1L, 10L, new CommentCreateDto("good"));
 
         assertThat(dto.getText()).isEqualTo("good");
         verify(commentRepository).save(any(Comment.class));
@@ -170,7 +171,7 @@ class ItemServiceImplTest {
         when(bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(anyLong(), anyLong(), any(), any()))
                 .thenReturn(false);
 
-        assertThatThrownBy(() -> itemService.addComment(1L, 10L, new CommentDto()))
+        assertThatThrownBy(() -> itemService.addComment(1L, 10L, new CommentCreateDto()))
                 .isInstanceOf(BadRequestException.class);
     }
 }

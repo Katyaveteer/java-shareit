@@ -41,7 +41,6 @@ public class GlobalExceptionHandler {
     }
 
 
-
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public ErrorResponse handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {

@@ -109,7 +109,7 @@ class BookingControllerGatewayTest {
                         .param("state", "ALL"))
                 .andExpect(status().isOk());
 
-        // Verify client was called correctly
+
         verify(bookingClient).getBookings(anyLong(), any(BookingState.class));
     }
 }
