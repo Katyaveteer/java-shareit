@@ -85,9 +85,8 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public static class BadRequestException extends RuntimeException {
-        public BadRequestException(String message) {
-            super(message);
-        }
+    public ErrorResponse BadRequestException(final BadRequestException e) {
+        return new ErrorResponse(e.getMessage());
     }
 }
+

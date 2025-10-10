@@ -21,7 +21,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "text", columnDefinition = "TEXT", nullable = false)
     private String text;
 
     @Column(name = "created_at", nullable = false)

@@ -52,7 +52,15 @@ public class ItemServiceImpl implements ItemService {
                 : null;
 
         Item item = ItemMapper.toEntity(dto, owner, request);
-        return ItemMapper.toDto(itemRepository.save(item));
+        Item savedItem = itemRepository.save(item);
+
+        List<CommentDto> comments = commentRepository.findByItemId(savedItem.getId())
+                .stream()
+                .map(CommentMapper::toDto)
+                .toList();
+
+        return ItemMapper.toDto(savedItem, comments);
+
     }
 
     @Override
@@ -77,7 +85,15 @@ public class ItemServiceImpl implements ItemService {
             item.setAvailable(dto.getAvailable());
         }
 
-        return ItemMapper.toDto(itemRepository.save(item));
+        Item savedItem = itemRepository.save(item);
+
+        List<CommentDto> comments = commentRepository.findByItemId(savedItem.getId())
+                .stream()
+                .map(CommentMapper::toDto)
+                .toList();
+
+        return ItemMapper.toDto(savedItem, comments);
+
     }
 
     @Override
@@ -137,11 +153,19 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> search(String text) {
         if (text.isBlank()) return List.of();
+
         return itemRepository.search(text)
                 .stream()
-                .map(ItemMapper::toDto)
+                .map(item -> {
+                    List<CommentDto> comments = commentRepository.findByItemId(item.getId())
+                            .stream()
+                            .map(CommentMapper::toDto)
+                            .toList();
+                    return ItemMapper.toDto(item, comments);
+                })
                 .toList();
     }
+
 
     @Override
     public CommentDto addComment(Long userId, Long itemId, CommentDto dto) {
@@ -150,7 +174,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
-        // проверяем, было ли у пользователя подтверждённое бронирование, завершившееся в прошлом
+
         boolean hasBooking = bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(userId, itemId, BookingStatus.APPROVED, LocalDateTime.now()
         );
 
@@ -175,10 +199,18 @@ public class ItemServiceImpl implements ItemService {
 
         List<ItemDto> items = itemRepository.findAllByRequestId(requestId)
                 .stream()
-                .map(ItemMapper::toDto) // <-- вызываем статически
+                .map(item -> {
+                    List<CommentDto> comments = commentRepository.findByItemId(item.getId())
+                            .stream()
+                            .map(CommentMapper::toDto)
+                            .toList();
+                    return ItemMapper.toDto(item, comments);
+                })
                 .toList();
 
-        return ItemRequestMapper.toDto(request); // <-- и сюда, если нужно добавить items
+        ItemRequestDto requestDto = ItemRequestMapper.toDto(request);
+        requestDto.setItems(items); // добавляем список ItemDto с комментариями
+        return requestDto;
     }
 
 

@@ -28,8 +28,7 @@ public class ItemRequestController {
 
     @GetMapping
     public ResponseEntity<List<ItemRequestDto>> getOwnRequests(
-            @RequestHeader("X-Sharer-User-Id") Long userId
-    ) {
+            @RequestHeader("X-Sharer-User-Id") Long userId) {
         return ResponseEntity.ok(itemRequestService.getOwnRequests(userId));
     }
 

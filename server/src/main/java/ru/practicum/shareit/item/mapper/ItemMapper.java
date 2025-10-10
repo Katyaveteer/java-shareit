@@ -23,14 +23,19 @@ public class ItemMapper {
                 .build();
     }
 
-    public static ItemDto toDto(Item item) {
+    public static ItemDto toDto(Item item, List<CommentDto> comments) {
         return ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
+                .comments(comments)
                 .build();
+    }
+
+    public static ItemDto toDto(Item item) {
+        return toDto(item, List.of()); // пустой список, если комментарии не нужны
     }
 
     public static ItemWithBookingsDto toDtoWithBookings(Item item,

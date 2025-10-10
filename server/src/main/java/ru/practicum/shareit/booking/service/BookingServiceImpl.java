@@ -1,12 +1,15 @@
 package ru.practicum.shareit.booking.service;
 
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -93,34 +96,42 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getUserBookings(Long userId, String state) {
-
+    public List<BookingDto> getUserBookings(Long userId, BookingState state) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("Пользователь не найден");
         }
-
 
         LocalDateTime now = LocalDateTime.now();
         Sort sort = Sort.by("start").descending();
         List<Booking> bookings;
 
-        switch (state.toUpperCase()) {
-            case "CURRENT" ->
-                    bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, now, now, sort);
-            case "PAST" -> bookings = bookingRepository.findByBooker_IdAndEndIsBefore(userId, now, sort);
-            case "FUTURE" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStart().isAfter(now)).toList();
-            case "WAITING" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.WAITING).toList();
-            case "REJECTED" -> bookings = bookingRepository.findByBooker_Id(userId, sort).stream()
-                    .filter(b -> b.getStatus() == BookingStatus.REJECTED).toList();
-            default -> bookings = bookingRepository.findByBooker_Id(userId, sort);
+        switch (state) {
+            case CURRENT:
+                bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfter(userId, now, now, sort);
+                break;
+            case PAST:
+                bookings = bookingRepository.findByBooker_IdAndEndIsBefore(userId, now, sort);
+                break;
+            case FUTURE:
+
+                bookings = bookingRepository.findByBooker_IdAndStartAfter(userId, now, sort);
+                break;
+            case WAITING:
+
+                bookings = bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.WAITING, sort);
+                break;
+            case REJECTED:
+
+                bookings = bookingRepository.findByBooker_IdAndStatus(userId, BookingStatus.REJECTED, sort);
+                break;
+            default:
+                bookings = bookingRepository.findByBooker_Id(userId, sort);
         }
         return bookings.stream().map(BookingMapper::toDto).toList();
     }
 
     @Override
-    public List<BookingDto> getOwnerBookings(Long ownerId, String state) {
+    public List<BookingDto> getOwnerBookings(Long ownerId, BookingState state) {
 
         if (!userRepository.existsById(ownerId)) {
             throw new NotFoundException("Пользователь не найден");
@@ -130,13 +141,41 @@ public class BookingServiceImpl implements BookingService {
         Sort sort = Sort.by("start").descending();
         List<Booking> bookings = bookingRepository.findByOwnerId(ownerId, sort);
 
-        return bookings.stream().filter(b -> switch (state.toUpperCase()) {
-            case "CURRENT" -> b.getStart().isBefore(now) && b.getEnd().isAfter(now);
-            case "PAST" -> b.getEnd().isBefore(now);
-            case "FUTURE" -> b.getStart().isAfter(now);
-            case "WAITING" -> b.getStatus() == BookingStatus.WAITING;
-            case "REJECTED" -> b.getStatus() == BookingStatus.REJECTED;
-            default -> true;
-        }).map(BookingMapper::toDto).toList();
+        return bookings.stream()
+                .filter(b -> switch (state) {
+                    case CURRENT -> b.getStart().isBefore(now) && b.getEnd().isAfter(now);
+                    case PAST -> b.getEnd().isBefore(now);
+                    case FUTURE -> b.getStart().isAfter(now);
+                    case WAITING -> b.getStatus() == BookingStatus.WAITING;
+                    case REJECTED -> b.getStatus() == BookingStatus.REJECTED;
+                    default -> true;
+                })
+                .map(BookingMapper::toDto)
+                .toList();
     }
+
+
+    @Override
+    public BookingShortDto getLastBooking(Long itemId) {
+        return bookingRepository
+                .findFirstByItem_IdAndStartBeforeOrderByEndDesc(itemId, LocalDateTime.now())
+                .map(BookingMapper::toShortDto)
+                .orElse(null);
+    }
+
+    @Override
+    public BookingShortDto getNextBooking(Long itemId) {
+        return bookingRepository
+                .findFirstByItem_IdAndStartAfterOrderByStartAsc(itemId, LocalDateTime.now())
+                .map(BookingMapper::toShortDto)
+                .orElse(null);
+    }
+
+
+    @Override
+    public Booking getBookingWithUserBookedItem(Long itemId, Long userId) {
+        return bookingRepository.findFirstByItemIdAndBookerIdAndEndIsBeforeAndStatus(itemId,
+                userId, LocalDateTime.now(), BookingStatus.APPROVED);
+    }
+
 }

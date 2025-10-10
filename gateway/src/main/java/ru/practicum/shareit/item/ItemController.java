@@ -50,6 +50,13 @@ public class ItemController {
     public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
                                              @PathVariable Long itemId,
                                              @Valid @RequestBody CommentDto commentDto) {
-        return client.addComment(userId, itemId, commentDto);
+        ResponseEntity<Object> response = client.addComment(userId, itemId, commentDto);
+
+        if (response.getStatusCode().isError()) {
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(response.getBody());
+        }
+
+        return response;
     }
 }

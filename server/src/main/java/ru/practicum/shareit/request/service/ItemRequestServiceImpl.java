@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +49,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getOwnRequests(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         List<ItemRequest> requests = itemRequestRepository
                 .findByRequesterIdOrderByCreatedDesc(userId);
@@ -63,7 +62,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getAllRequests(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         List<ItemRequest> requests = itemRequestRepository.findAll().stream()
                 .filter(r -> !r.getRequester().getId().equals(userId))
@@ -75,11 +74,16 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     @Transactional
     public ItemRequestDto getRequestById(Long userId, Long requestId) {
 
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+
         ItemRequest request = itemRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("Request not found"));
+                .orElseThrow(() -> new NotFoundException("Запрос не найден"));
 
 
         List<ItemDto> items = itemRepository.findAllByRequestId(requestId)
@@ -95,5 +99,4 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .items(items)
                 .build();
     }
-
 }

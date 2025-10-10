@@ -3,21 +3,31 @@ package ru.practicum.shareit.booking;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.exception.BadRequestException;
 
 
-@RestController
+@Controller
 @RequestMapping("/bookings")
 @RequiredArgsConstructor
+@Validated
 public class BookingController {
-
 
     private final BookingClient client;
 
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") Long userId,
                                          @Valid @RequestBody BookingCreateDto dto) {
+        // Дополнительная проверка дат
+        if (dto.getStart() != null && dto.getEnd() != null &&
+                !dto.getEnd().isAfter(dto.getStart())) {
+            throw new BadRequestException("Дата окончания должна быть позже даты начала");
+        }
+
         return client.create(userId, dto);
     }
 
@@ -36,15 +46,16 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getUserBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                  @RequestParam(defaultValue = "ALL") String state) {
-        return client.getUserBookings(userId, state);
+                                                  @RequestParam(defaultValue = "ALL") BookingState state) {
+        return client.getUserBookings(userId, state.name());
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                   @RequestParam(defaultValue = "ALL") String state) {
-        return client.getOwnerBookings(ownerId, state);
+                                                   @RequestParam(defaultValue = "ALL") BookingState state) {
+        return client.getOwnerBookings(ownerId, state.name());
     }
 }
+
 
 

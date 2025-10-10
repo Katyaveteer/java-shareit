@@ -1,51 +1,52 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.client.BaseClient;
 
 import java.util.Map;
 
-@Component
+@Service
 public class BookingClient extends BaseClient {
 
-    private static final String BOOKINGS_PATH = "/bookings";
-
-    public BookingClient(@Qualifier("gatewayRestTemplate") RestTemplate restTemplate,
-                         @Value("${shareit.server.url}") String serverUrl) {
-        super(restTemplate, serverUrl);
+    @Autowired
+    public BookingClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
+        super(
+                builder
+                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + "/bookings"))
+                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
+                        .build()
+        );
     }
 
-    // Создание бронирования
     public ResponseEntity<Object> create(Long userId, BookingCreateDto dto) {
-        return post(BOOKINGS_PATH, userId, null, dto);
+        return post("", userId, dto);
     }
 
-    // Подтверждение/отмена бронирования
     public ResponseEntity<Object> approve(Long ownerId, Long bookingId, boolean approved) {
-        Map<String, Object> parameters = Map.of("approved", approved);
-        return patch(BOOKINGS_PATH + "/" + bookingId, ownerId, parameters, null);
+        Map<String, Object> params = Map.of("approved", approved);
+        return patch("/" + bookingId + "?approved={approved}", ownerId, params, null);
     }
 
-    // Получение бронирования по ID
     public ResponseEntity<Object> getById(Long userId, Long bookingId) {
-        return get(BOOKINGS_PATH + "/" + bookingId, userId, null);
+        return get("/" + bookingId, userId);
     }
 
-    // Получение всех бронирований пользователя с фильтром по состоянию
     public ResponseEntity<Object> getUserBookings(Long userId, String state) {
-        Map<String, Object> parameters = Map.of("state", state);
-        return get(BOOKINGS_PATH, userId, parameters);
+        Map<String, Object> params = Map.of("state", state);
+        return get("?state={state}", userId, params);
     }
 
-    // Получение всех бронирований владельца с фильтром по состоянию
     public ResponseEntity<Object> getOwnerBookings(Long ownerId, String state) {
-        Map<String, Object> parameters = Map.of("state", state);
-        return get(BOOKINGS_PATH + "/owner", ownerId, parameters);
+        Map<String, Object> params = Map.of("state", state);
+        return get("/owner?state={state}", ownerId, params);
     }
 }
+
 

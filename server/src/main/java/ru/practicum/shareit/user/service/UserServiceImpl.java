@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
             existing.setName(dto.getName());
         }
 
-        User updated = repo.save(existing); // save работает для обновления
+        User updated = repo.save(existing);
         return UserMapper.toDto(updated);
     }
 

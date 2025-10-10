@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,4 +26,6 @@ public class ItemDto {
     private Boolean available;
 
     private Long requestId;
+
+    private List<CommentDto> comments;
 }
