@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.Map;
 
+@Component
 public class ItemClient extends BaseClient {
 
     private static final String ITEM_PATH = "/items";

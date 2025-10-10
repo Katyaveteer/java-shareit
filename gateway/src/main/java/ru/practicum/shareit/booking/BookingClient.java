@@ -2,11 +2,12 @@ package ru.practicum.shareit.booking;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.client.BaseClient;
 
-
+@Component
 public class BookingClient extends BaseClient {
 
     private static final String BOOKINGS_PATH = "/bookings";
