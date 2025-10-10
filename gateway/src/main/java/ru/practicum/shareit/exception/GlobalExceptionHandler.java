@@ -77,16 +77,5 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Неверный формат JSON");
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public static class ForbiddenException extends RuntimeException {
-        public ForbiddenException(String message) {
-            super(message);
-        }
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse BadRequestException(final BadRequestException e) {
-        return new ErrorResponse(e.getMessage());
-    }
 }
 
