@@ -13,10 +13,9 @@ import ru.practicum.shareit.item.service.ItemService;
 import java.net.URI;
 import java.util.List;
 
-
+@RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
-@Validated
 public class ItemController {
     private static final String USER_HEADER = "X-Sharer-User-Id";
     private final ItemService service;

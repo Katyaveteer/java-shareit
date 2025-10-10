@@ -1,5 +1,6 @@
 package ru.practicum.shareit.client;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -10,25 +11,27 @@ import java.util.Map;
 
 
 public class BaseClient {
-    protected final RestTemplate rest;
 
-    public BaseClient(RestTemplate rest) {
+    protected final RestTemplate rest;
+    private final String serverUrl;
+
+    public BaseClient(RestTemplate rest, @Value("${shareit.server.url}") String serverUrl) {
         this.rest = rest;
+        this.serverUrl = serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
     }
 
     private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
+        if (response == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
         return ResponseEntity
                 .status(response.getStatusCode())
-                .headers(response.getHeaders()) // ← ЭТО ОБЯЗАТЕЛЬНО!
+                .headers(response.getHeaders())
                 .body(response.hasBody() ? response.getBody() : null);
     }
 
     protected ResponseEntity<Object> get(String path) {
-        return get(path, (Long) null, null);
-    }
-
-    protected ResponseEntity<Object> get(String path, long userId) {
-        return get(path, userId, null);
+        return get(path, null, null);
     }
 
     protected ResponseEntity<Object> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
@@ -36,11 +39,7 @@ public class BaseClient {
     }
 
     protected <T> ResponseEntity<Object> post(String path, T body) {
-        return post(path, (Long) null, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> post(String path, long userId, T body) {
-        return post(path, userId, null, body);
+        return post(path, null, null, body);
     }
 
     protected <T> ResponseEntity<Object> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
@@ -48,15 +47,7 @@ public class BaseClient {
     }
 
     protected <T> ResponseEntity<Object> patch(String path, T body) {
-        return patch(path, (Long) null, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> patch(String path, long userId, T body) {
-        return patch(path, userId, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> patch(String path, Long userId, T body) {
-        return patch(path, userId, null, body);
+        return patch(path, null, null, body);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
@@ -64,11 +55,7 @@ public class BaseClient {
     }
 
     protected ResponseEntity<Object> delete(String path) {
-        return delete(path, (Long) null, null);
-    }
-
-    protected ResponseEntity<Object> delete(String path, long userId) {
-        return delete(path, userId, null);
+        return delete(path, null, null);
     }
 
     protected ResponseEntity<Object> delete(String path, Long userId, @Nullable Map<String, Object> parameters) {
@@ -82,18 +69,27 @@ public class BaseClient {
             @Nullable Map<String, Object> parameters,
             @Nullable T body) {
 
+        // Корректное формирование полного URL
+        String fullUrl = path.startsWith("/") ? serverUrl + path : serverUrl + "/" + path;
+
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
 
         try {
-            if (parameters != null) {
-                return rest.exchange(path, method, requestEntity, Object.class, parameters);
+            ResponseEntity<Object> response;
+            if (parameters != null && !parameters.isEmpty()) {
+                response = rest.exchange(fullUrl, method, requestEntity, Object.class, parameters);
             } else {
-                return rest.exchange(path, method, requestEntity, Object.class);
+                response = rest.exchange(fullUrl, method, requestEntity, Object.class);
             }
+            return prepareGatewayResponse(response);
         } catch (HttpStatusCodeException e) {
+            // Возвращаем строку вместо байтов
             return ResponseEntity.status(e.getStatusCode())
-                    .headers(e.getResponseHeaders()) // сохраняем заголовки даже в ошибке
-                    .body(e.getResponseBodyAsByteArray());
+                    .headers(e.getResponseHeaders())
+                    .body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Gateway error: " + e.getMessage());
         }
     }
 
