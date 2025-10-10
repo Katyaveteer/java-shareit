@@ -33,12 +33,12 @@ class UserDtoJsonTest {
     @Test
     void shouldDeserializeUserDto() throws Exception {
         String jsonString = """
-                {
-                  "id": 100,
-                  "name": "Alice",
-                  "email": "alice@example.com"
-                }
-                """;
+        {
+          "id": 100,
+          "name": "Alice",
+          "email": "alice@example.com"
+        }
+        """;
 
         var dto = json.parse(jsonString).getObject();
 
@@ -46,4 +46,5 @@ class UserDtoJsonTest {
         assertThat(dto.getName()).isEqualTo("Alice");
         assertThat(dto.getEmail()).isEqualTo("alice@example.com");
     }
+
 }

@@ -35,16 +35,16 @@ class ItemRequestDtoJsonTest {
     @Test
     void shouldDeserializeItemRequestDto() throws Exception {
         String jsonString = """
-                {
-                  "id": 10,
-                  "description": "Need a drill",
-                  "requestor": {
-                    "id": 5,
-                    "name": "Alice",
-                    "email": "alice@example.com"
-                  }
-                }
-                """;
+        {
+          "id": 10,
+          "description": "Need a drill",
+          "requestor": {
+            "id": 5,
+            "name": "Alice",
+            "email": "alice@example.com"
+          }
+        }
+        """;
 
         var dto = json.parse(jsonString).getObject();
 
@@ -52,5 +52,6 @@ class ItemRequestDtoJsonTest {
         assertThat(dto.getDescription()).isEqualTo("Need a drill");
         assertThat(dto.getRequestor().getId()).isEqualTo(5L);
     }
+
 }
 

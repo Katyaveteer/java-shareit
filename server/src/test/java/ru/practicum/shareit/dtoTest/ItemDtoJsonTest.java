@@ -37,14 +37,14 @@ class ItemDtoJsonTest {
     @Test
     void shouldDeserializeItemDto() throws Exception {
         String jsonString = """
-                {
-                  "id": 1,
-                  "name": "Drill",
-                  "description": "Power drill",
-                  "available": true,
-                  "requestId": 2
-                }
-                """;
+        {
+          "id": 1,
+          "name": "Drill",
+          "description": "Power drill",
+          "available": true,
+          "requestId": 2
+        }
+        """;
 
         var dto = json.parse(jsonString).getObject();
 
@@ -54,4 +54,5 @@ class ItemDtoJsonTest {
         assertThat(dto.getAvailable()).isTrue();
         assertThat(dto.getRequestId()).isEqualTo(2L);
     }
+
 }

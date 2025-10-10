@@ -37,13 +37,13 @@ class BookingDtoJsonTest {
     @Test
     void shouldDeserializeBookingDto() throws Exception {
         String jsonString = """
-                {
-                  "id": 1,
-                  "start": "2024-06-01T10:00:00",
-                  "end": "2024-06-02T10:00:00",
-                  "status": "APPROVED"
-                }
-                """;
+        {
+          "id": 1,
+          "start": "2024-06-01T10:00:00",
+          "end": "2024-06-02T10:00:00",
+          "status": "APPROVED"
+        }
+        """;
 
         var dto = json.parse(jsonString).getObject();
 
@@ -51,4 +51,5 @@ class BookingDtoJsonTest {
         assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2024, 6, 1, 10, 0));
         assertThat(dto.getStatus()).isEqualTo(BookingStatus.APPROVED);
     }
+
 }
