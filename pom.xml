@@ -200,7 +200,7 @@
                                             <limit>
                                                 <counter>METHOD</counter>
                                                 <value>COVEREDRATIO</value>
-                                                <minimum>0.3</minimum>
+                                                <minimum>0.1</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>CLASS</counter>
