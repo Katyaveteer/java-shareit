@@ -36,15 +36,12 @@ class BookingDtoJsonTest {
 
     @Test
     void shouldDeserializeBookingDto() throws Exception {
-        String jsonString = """
-        {
-          "id": 1,
-          "start": "2024-06-01T10:00:00",
-          "end": "2024-06-02T10:00:00",
-          "status": "APPROVED"
-        }
-        """;
-
+        String jsonString = "{"
+                + "\"id\": 1,"
+                + "\"start\": \"2024-06-01T10:00:00\","
+                + "\"end\": \"2024-06-02T10:00:00\","
+                + "\"status\": \"APPROVED\""
+                + "}";
         var dto = json.parse(jsonString).getObject();
 
         assertThat(dto.getId()).isEqualTo(1L);

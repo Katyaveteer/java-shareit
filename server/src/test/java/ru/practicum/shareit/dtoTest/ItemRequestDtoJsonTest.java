@@ -34,17 +34,15 @@ class ItemRequestDtoJsonTest {
 
     @Test
     void shouldDeserializeItemRequestDto() throws Exception {
-        String jsonString = """
-        {
-          "id": 10,
-          "description": "Need a drill",
-          "requestor": {
-            "id": 5,
-            "name": "Alice",
-            "email": "alice@example.com"
-          }
-        }
-        """;
+        String jsonString = "{"
+                + "\"id\": 10,"
+                + "\"description\": \"Need a drill\","
+                + "\"requestor\": {"
+                + "\"id\": 5,"
+                + "\"name\": \"Alice\","
+                + "\"email\": \"alice@example.com\""
+                + "}"
+                + "}";
 
         var dto = json.parse(jsonString).getObject();
 
