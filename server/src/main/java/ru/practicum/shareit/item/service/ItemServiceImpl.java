@@ -1,10 +1,12 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -162,10 +164,17 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
 
-        boolean hasBooking = bookingRepository.existsByBooker_IdAndItem_IdAndStatusAndEndBefore(userId, itemId, BookingStatus.APPROVED, LocalDateTime.now()
+        List<Booking> userPastBookings = bookingRepository.findByBooker_IdAndEndIsBefore(
+                userId, LocalDateTime.now(), Sort.by(Sort.Direction.DESC, "end")
         );
 
-        if (!hasBooking) {
+        boolean hasValidBooking = userPastBookings.stream()
+                .anyMatch(booking ->
+                        booking.getItem().getId().equals(itemId) &&
+                                booking.getStatus() == BookingStatus.APPROVED
+                );
+
+        if (!hasValidBooking) {
             throw new BadRequestException("Комментарий можно оставить только после завершённого бронирования");
         }
 
@@ -196,7 +205,7 @@ public class ItemServiceImpl implements ItemService {
                 .toList();
 
         ItemRequestDto requestDto = ItemRequestMapper.toDto(request);
-        requestDto.setItems(items); // добавляем список ItemDto с комментариями
+        requestDto.setItems(items);
         return requestDto;
     }
 
