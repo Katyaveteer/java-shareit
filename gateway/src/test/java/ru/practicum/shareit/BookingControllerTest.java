@@ -121,7 +121,7 @@ class BookingControllerTest {
         Mockito.when(bookingClient.getOwnerBookings(1L, BookingState.ALL.name()))
                 .thenReturn(ResponseEntity.ok().build());
 
-        mockMvc.perform(get("/bookings/owner")
+        mockMvc.perform(get("/bookings/owner/bookings")
                         .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isOk());
 
