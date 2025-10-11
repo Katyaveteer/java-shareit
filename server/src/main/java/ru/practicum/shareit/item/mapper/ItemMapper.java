@@ -30,12 +30,12 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
-                .comments(comments)
+                .comments(comments != null ? comments : List.of())
                 .build();
     }
 
     public static ItemDto toDto(Item item) {
-        return toDto(item, List.of()); // пустой список, если комментарии не нужны
+        return toDto(item, List.of());
     }
 
     public static ItemWithBookingsDto toDtoWithBookings(Item item,

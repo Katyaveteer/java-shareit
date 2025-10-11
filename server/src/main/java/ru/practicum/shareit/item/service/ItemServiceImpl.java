@@ -54,18 +54,11 @@ public class ItemServiceImpl implements ItemService {
         Item item = ItemMapper.toEntity(dto, owner, request);
         Item savedItem = itemRepository.save(item);
 
-        List<CommentDto> comments = commentRepository.findByItemId(savedItem.getId())
-                .stream()
-                .map(CommentMapper::toDto)
-                .toList();
-
-        return ItemMapper.toDto(savedItem, comments);
-
+        return ItemMapper.toDto(savedItem, List.of());
     }
 
     @Override
     public ItemDto update(Long ownerId, Long itemId, ItemDto dto) {
-
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
@@ -87,13 +80,7 @@ public class ItemServiceImpl implements ItemService {
 
         Item savedItem = itemRepository.save(item);
 
-        List<CommentDto> comments = commentRepository.findByItemId(savedItem.getId())
-                .stream()
-                .map(CommentMapper::toDto)
-                .toList();
-
-        return ItemMapper.toDto(savedItem, comments);
-
+        return ItemMapper.toDto(savedItem, List.of());
     }
 
     @Override

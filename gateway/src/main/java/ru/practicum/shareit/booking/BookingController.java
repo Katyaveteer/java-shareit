@@ -22,7 +22,7 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") Long userId,
                                          @Valid @RequestBody BookingCreateDto dto) {
-        // Дополнительная проверка дат
+
         if (dto.getStart() != null && dto.getEnd() != null &&
                 !dto.getEnd().isAfter(dto.getStart())) {
             throw new BadRequestException("Дата окончания должна быть позже даты начала");
@@ -50,9 +50,10 @@ public class BookingController {
         return client.getUserBookings(userId, state.name());
     }
 
-    @GetMapping("/owner")
-    public ResponseEntity<Object> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId,
-                                                   @RequestParam(defaultValue = "ALL") BookingState state) {
+    @GetMapping("/owner/bookings")
+    public ResponseEntity<Object> getOwnerBookings(
+            @RequestHeader("X-Sharer-User-Id") Long ownerId,
+            @RequestParam(defaultValue = "ALL") BookingState state) {
         return client.getOwnerBookings(ownerId, state.name());
     }
 }

@@ -43,20 +43,14 @@ public class ItemController {
 
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam String text) {
-        return ResponseEntity.ok(client.search(text));
+
+        return client.search(text);
     }
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
                                              @PathVariable Long itemId,
                                              @Valid @RequestBody CommentDto commentDto) {
-        ResponseEntity<Object> response = client.addComment(userId, itemId, commentDto);
-
-        if (response.getStatusCode().isError()) {
-            return ResponseEntity.status(response.getStatusCode())
-                    .body(response.getBody());
-        }
-
-        return response;
+        return client.addComment(userId, itemId, commentDto);
     }
 }
